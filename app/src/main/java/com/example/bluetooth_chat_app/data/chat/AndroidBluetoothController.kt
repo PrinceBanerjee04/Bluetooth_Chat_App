@@ -2,6 +2,8 @@ package com.example.bluetooth_chat_app.data.chat
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothServerSocket
+import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
@@ -17,6 +19,9 @@ import kotlinx.coroutines.flow.update
 import com.example.bluetooth_chat_app.data.chat.toBluetoothDeviceDomain
 import com.example.bluetooth_chat_app.domain.chat.ConnectionResult
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import java.io.IOException
+import java.util.UUID
 
 
 @SuppressLint("MissingPermission")
@@ -44,6 +49,8 @@ class AndroidBluetoothController(
             if(newDevice in devices) devices else devices + newDevice
         }
     }
+    private var currentServerSocket: BluetoothServerSocket? = null
+    private var currentClientSocket: BluetoothSocket? = null
     init{
         updatePairedDevices()
     }
@@ -69,11 +76,36 @@ class AndroidBluetoothController(
     }
 
     override fun startBluetoothServer(): Flow<ConnectionResult> {
+        return flow {
+            if(!hasPermission(android.Manifest.permission.BLUETOOTH_CONNECT)){
+                throw SecurityException("No Bluetooth_Connect Permission")
+            }
 
+            currentServerSocket = bluetoothAdapter?.listenUsingInsecureRfcommWithServiceRecord(
+                "chat_service", UUID.fromString(SERVICE_UUID)
+            )
+
+            var shouldLoop = true
+            while (shouldLoop){
+                currentClientSocket = try {
+                    currentServerSocket?.accept()
+                } catch(e: IOException){
+                    shouldLoop = false
+                    null
+                }
+                currentClientSocket?.let {
+                    currentServerSocket?.close()
+                }
+            }
+        }
     }
 
     override fun connectToDevice(device: BluetoothDeviceDomain): Flow<ConnectionResult> {
-
+        return flow {
+            if (!hasPermission(android.Manifest.permission.BLUETOOTH_CONNECT)) {
+                throw SecurityException("No Bluetooth_Connect Permission")
+            }
+        }
     }
 
     override fun closeConnection() {
@@ -97,5 +129,9 @@ class AndroidBluetoothController(
 
     private fun hasPermission(permission: String): Boolean{
         return context.checkSelfPermission(permission)==PackageManager.PERMISSION_GRANTED
+    }
+
+    companion object{
+        const val SERVICE_UUID = "27b7d1da-08c7-4505-a6d1-2459987e5e2d"
     }
 }
