@@ -18,8 +18,11 @@ import kotlinx.coroutines.flow.update
 
 import com.example.bluetooth_chat_app.data.chat.toBluetoothDeviceDomain
 import com.example.bluetooth_chat_app.domain.chat.ConnectionResult
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onCompletion
 import java.io.IOException
 import java.util.UUID
 
@@ -93,11 +96,14 @@ class AndroidBluetoothController(
                     shouldLoop = false
                     null
                 }
+                emit(ConnectionResult.ConnectionEstablished)
                 currentClientSocket?.let {
                     currentServerSocket?.close()
                 }
             }
-        }
+        }.onCompletion {
+            closeConnection()
+        }.flowOn(Dispatchers.IO)
     }
 
     override fun connectToDevice(device: BluetoothDeviceDomain): Flow<ConnectionResult> {
@@ -105,7 +111,24 @@ class AndroidBluetoothController(
             if (!hasPermission(android.Manifest.permission.BLUETOOTH_CONNECT)) {
                 throw SecurityException("No Bluetooth_Connect Permission")
             }
-        }
+
+            currentClientSocket = bluetoothAdapter?.getRemoteDevice(device.address)?.createRfcommSocketToServiceRecord(
+                UUID.fromString(SERVICE_UUID))
+            stopDiscovery()
+
+            currentClientSocket?.let { socket->
+                try {
+                    socket.connect()
+                    emit(ConnectionResult.ConnectionEstablished)
+                }catch (e: IOException){
+                    socket.close()
+                    currentClientSocket = null
+                    emit(ConnectionResult.Error("Connection was interrupted"))
+                }
+            }
+        }.onCompletion {
+            closeConnection()
+        }.flowOn(Dispatchers.IO)
     }
 
     override fun closeConnection() {
