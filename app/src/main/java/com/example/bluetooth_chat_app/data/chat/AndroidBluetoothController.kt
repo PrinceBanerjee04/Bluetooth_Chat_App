@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 import com.example.bluetooth_chat_app.data.chat.toBluetoothDeviceDomain
+import com.example.bluetooth_chat_app.domain.chat.ConnectionResult
+import kotlinx.coroutines.flow.Flow
 
 
 @SuppressLint("MissingPermission")
@@ -64,6 +66,18 @@ class AndroidBluetoothController(
         }
 
         bluetoothAdapter?.cancelDiscovery()
+    }
+
+    override fun startBluetoothServer(): Flow<ConnectionResult> {
+
+    }
+
+    override fun connectToDevice(device: BluetoothDeviceDomain): Flow<ConnectionResult> {
+
+    }
+
+    override fun closeConnection() {
+
     }
 
     override fun release() {
