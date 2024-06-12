@@ -132,11 +132,15 @@ class AndroidBluetoothController(
     }
 
     override fun closeConnection() {
-
+        currentClientSocket?.close()
+        currentServerSocket?.close()
+        currentClientSocket = null
+        currentServerSocket = null
     }
 
     override fun release() {
         context.unregisterReceiver(foundDeviceReceiver)
+        closeConnection()
     }
 
     private fun updatePairedDevices(){
