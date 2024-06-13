@@ -8,7 +8,6 @@
     android:usesPermissionFlags="neverForLocation"/>
 <uses-feature android:name="android.hardware.bluetooth"/>
 
-
     <application
         android:name=".BluetoothApp"
         android:allowBackup="true"
