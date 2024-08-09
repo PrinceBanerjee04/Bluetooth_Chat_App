@@ -17,8 +17,10 @@ class BluetoothDataTransferService(
             val buffer = ByteArray(1024)
             while (true){
                 val byteCount = try {
-                    socket.inputStream
-                }catch (e: IOException)
+                    socket.inputStream.read(buffer)
+                }catch (e: IOException){
+
+                }
             }
         }
     }
