@@ -10,7 +10,9 @@ class BluetoothDataTransferService(
 ) {
     fun listenIncomingMessages(): Flow<ConnectionResult>{
         return flow {
-
+            if(!socket.isConnected){
+                return@flow
+            }
         }
     }
 }
