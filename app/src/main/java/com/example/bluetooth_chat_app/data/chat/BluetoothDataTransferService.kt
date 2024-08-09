@@ -13,6 +13,7 @@ class BluetoothDataTransferService(
             if(!socket.isConnected){
                 return@flow
             }
+            val buffer = ByteArray(1024)
         }
     }
 }
